@@ -5,25 +5,33 @@
 #include "ui_ivan_qtsensortest.h"
 
 #include <QCompass>
-#include <QCompassReading>
+#include <QGyroscope>
+#include <QtPositioning/QGeoPositionInfoSource>
 
-class Ivan_QtSensorTest : public QMainWindow
+
+class Ivan_QtSensorTest : public QMainWindow, public Ui::Ivan_QtSensorTestClass
 {
 	Q_OBJECT
 
 public:
-	Ivan_QtSensorTest(QWidget *parent = 0);
+	Ivan_QtSensorTest( QWidget *parent = 0 );
 	~Ivan_QtSensorTest();
 
 public slots:
-    void update();
-    void error(int);
+	void		CompassUpdate();
+	void		CompassError( int );
+
+	void		GyroscopeUpdate();
+	void		GyroscopeError( int );
+
+	void		PositionUpdate( const QGeoPositionInfo &info );	
+	void		PositionError( QGeoPositionInfoSource::Error positioningError );
 
 private:
-	Ui::Ivan_QtSensorTestClass ui;
 
-    QCompass *compass;
-    QCompassReading *compass_reading;
+	QCompass*					mCompass;
+	QGyroscope*					mGyroscope;
+	QGeoPositionInfoSource*	mPosSrc;
 };
 
 #endif // IVAN_QTSENSORTEST_H

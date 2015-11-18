@@ -2,73 +2,154 @@
 
 #include <QSensor>
 #include <QDateTime>
-#include <QMessageBox>
+#include <QCompassReading>
+#include <QDataStream>
 
 
 Ivan_QtSensorTest::Ivan_QtSensorTest(QWidget *parent)
 	: QMainWindow(parent)
 {
-	ui.setupUi(this);
+	setupUi(this);
 
+
+	// global information
 	QList<QByteArray> sensorList = QSensor::sensorTypes();
-	ui.init->append( "Sensor list length: " + QString::number( sensorList.size() ).toUtf8() );
+	mGlobalInitView->append( "Sensor list length: " + QString::number( sensorList.size() ) );
 
 	foreach( QByteArray sensorName, sensorList ) 
+		mGlobalInitView->append( "Sensor: " + sensorName );
+
+	mGlobalInitView->append( "" );
+
+
+	// global information
+	QStringList posSources =  QGeoPositionInfoSource::availableSources();
+	mGlobalInitView->append( "available position sources: " + QString::number( posSources.size() ) );
+
+	foreach( QString posSrc, posSources ) 
+		mGlobalInitView->append( "Pos src: " + posSrc );
+
+	mGlobalInitView->append( "" );
+
+
+	// compass
+	mCompassInitView->append( "Initialization..." );
+
+	mCompass = new QCompass( this );
+	mCompass->setDataRate( 2 );
+	connect( mCompass, &QCompass::readingChanged, this, &Ivan_QtSensorTest::CompassUpdate );
+	connect( mCompass, &QCompass::sensorError, this, &Ivan_QtSensorTest::CompassError );
+	mCompass->start();
+
+	mCompassInitView->append( "QCompass isBusy: " + QString::number(mCompass->isBusy()) );
+	mCompassInitView->append( "QCompass isConnectedToBackend: " + QString::number(mCompass->isConnectedToBackend()) );
+	mCompassInitView->append( "QCompass isActive: " + QString::number(mCompass->isActive()) );
+
+
+	// Gyroscope
+	mGyroscopeInitView->append( "Initialization..." );
+
+	mGyroscope = new QGyroscope( this );
+	mGyroscope->setDataRate( 2 );
+	connect( mGyroscope, &QGyroscope::readingChanged, this, &Ivan_QtSensorTest::GyroscopeUpdate );
+	connect( mGyroscope, &QGyroscope::sensorError, this, &Ivan_QtSensorTest::GyroscopeError );
+	mGyroscope->start();
+
+	mGyroscopeInitView->append( "QGyroscope isBusy: " + QString::number(mGyroscope->isBusy()) );
+	mGyroscopeInitView->append( "QGyroscope isConnectedToBackend: " + QString::number(mGyroscope->isConnectedToBackend()) );
+	mGyroscopeInitView->append( "QGyroscope isActive: " + QString::number(mGyroscope->isActive()) );
+
+
+	// Positioning
+	mPositionInitView->append( "Initialization..." );
+
+	mPosSrc = QGeoPositionInfoSource::createDefaultSource( this );
+	if( !mPosSrc )
 	{
-		ui.init->append( "Sensor: " + sensorName );
+		mPositionInitView->append( "createDefaultSource fails" );
 	}
+	else
+	{
+		connect( mPosSrc, &QGeoPositionInfoSource::positionUpdated, this, &Ivan_QtSensorTest::PositionUpdate );
+		connect( mPosSrc, SIGNAL( error( QGeoPositionInfoSource::Error ) ), this, SLOT( PositionError( QGeoPositionInfoSource::Error ) ) );
+		mPosSrc->setUpdateInterval( 1000 );
+		mPosSrc->startUpdates();
 
-
-
-	///////////////
-	ui.init->append( "Initialization..." );
-
-	compass = new QCompass( this );
-	connect( compass, SIGNAL( readingChanged() ), this, SLOT( update() ) );
-	connect( compass, SIGNAL( sensorError( int ) ), this, SLOT( error( int ) ) );
-	compass->setDataRate( 1 );
-	compass->start();
-	if( compass->isBusy() ) {
-		ui.init->append( "QCompass is busy..." );
+		mPositionInitView->append( "sourceName: " + mPosSrc->sourceName() );
+		mPositionInitView->append( "supportedPositioningMethods: " + QString::number(mPosSrc->supportedPositioningMethods(), 16) );
 	}
-	if( compass->isConnectedToBackend() ) {
-		ui.init->append( "QCompass is connected to backend..." );
-	}
-	if( compass->isActive() ) {
-		ui.init->append( "QCompass isActive..." );
-	}
-
-	ui.init->append( "Waiting for sensors..." );
 }
 
 Ivan_QtSensorTest::~Ivan_QtSensorTest()
 {
-	delete compass;
 }
 
-void Ivan_QtSensorTest::update()
+void Ivan_QtSensorTest::CompassUpdate()
 {
-    QString text_compass;
+	mCompassStatusView->clear();
 
-    ui.textEdit->clear();
+	QCompassReading* compass_reading = mCompass->reading();
+	if( compass_reading == 0 )
+	{
+		mCompassStatusView->append( "Compass: UNAVAILABLE" );
+		return;
+	}
 
-   // accel_reading = accel->reading();
+	QString text_compass = 
+		"timestamp = " + QString::number( compass_reading->timestamp() ) + "\n"
+		"azimuth = " + QString::number( compass_reading->azimuth() ) + "\n"
+		"calibration level = " + QString::number( compass_reading->calibrationLevel() ) + "\n";
 
-    compass_reading = compass->reading();
-    if(compass_reading != 0) {
-        text_compass = QDateTime::currentDateTime().toString() +
-                + "\nCompass:  azimuth = " + QString::number(compass_reading->azimuth());
-                + "\ncalibration level = " + QString::number(compass_reading->calibrationLevel());
-
-        ui.textEdit->append(text_compass);
-    }
-    else {
-        text_compass = "\nCompass: UNAVAILABLE";
-        ui.textEdit->append(text_compass);
-    }
+	mCompassStatusView->append( text_compass );	
 }
 
+void Ivan_QtSensorTest::CompassError( int error ) 
+{
+	mCompassStatusView->clear();
+	mCompassStatusView->append( "Compass error num: " + QString::number(error) );	
+}
 
-void Ivan_QtSensorTest::error(int erreur) {
-    QMessageBox::critical(this, "Erreur", "Erreur num : " + QString::number(erreur).toUtf8());
+void Ivan_QtSensorTest::GyroscopeUpdate()
+{
+	mGyroscopeStatusView->clear();
+
+	QGyroscopeReading* gyroscope_reading = mGyroscope->reading();
+	if( gyroscope_reading == 0 )
+	{
+		mGyroscopeStatusView->append( "Gyroscope: UNAVAILABLE" );
+		return;
+	}
+
+	QString text_Gyroscope = 
+		"timestamp = " + QString::number( gyroscope_reading->timestamp() ) + "\n"
+		"x = " + QString::number( gyroscope_reading->x() ) + " deg/sec\n"
+		"y = " + QString::number( gyroscope_reading->y() ) + " deg/sec\n"
+		"z = " + QString::number( gyroscope_reading->z() ) + " deg/sec\n";
+
+	mGyroscopeStatusView->append( text_Gyroscope );	
+}
+
+void Ivan_QtSensorTest::GyroscopeError( int error ) 
+{
+	mGyroscopeStatusView->clear();
+	mGyroscopeStatusView->append( "Gyroscope error num: " + QString::number(error) );	
+}
+
+void Ivan_QtSensorTest::PositionUpdate( const QGeoPositionInfo &info )
+{
+	mPositionStatusView->clear();
+
+	QByteArray ba;
+	QDataStream ds( &ba, QIODevice::WriteOnly );
+
+	ds << info;
+
+	mPositionStatusView->append( QString(ba) );	
+}
+
+void Ivan_QtSensorTest::PositionError( QGeoPositionInfoSource::Error positioningError )
+{
+	mPositionStatusView->clear();
+	// \todo
+	mPositionStatusView->append( "Position error: " + QString::number(positioningError) );	
 }

@@ -3,11 +3,13 @@
 
 int main(int argc, char *argv[])
 {
+	QString aa;
+	//QString aa = "D:/DEVEL/Builder/Sandbox/Ivan/Ivan_QtSensorTest/Win32/Debug";
+	//QCoreApplication::addLibraryPath( aa );
 
 	QApplication a(argc, argv);
 
-	QString aa = QCoreApplication::applicationDirPath();
-
+	aa = QCoreApplication::applicationDirPath();
 	QCoreApplication::addLibraryPath( aa );
 
 
