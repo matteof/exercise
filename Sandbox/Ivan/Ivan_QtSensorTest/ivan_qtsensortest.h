@@ -7,6 +7,8 @@
 #include <QCompass>
 #include <QGyroscope>
 #include <QtPositioning/QGeoPositionInfoSource>
+#include <QAction>
+
 
 
 class Ivan_QtSensorTest : public QMainWindow, public Ui::Ivan_QtSensorTestClass
@@ -18,14 +20,17 @@ public:
 	~Ivan_QtSensorTest();
 
 public slots:
+	void		StartAll();
+
 	void		CompassUpdate();
 	void		CompassError( int );
 
 	void		GyroscopeUpdate();
 	void		GyroscopeError( int );
 
-	void		PositionUpdate( const QGeoPositionInfo &info );	
+	void		positionUpdated(const QGeoPositionInfo &info);	
 	void		PositionError( QGeoPositionInfoSource::Error positioningError );
+	void		PositionUpdateTimeout();
 
 private:
 
