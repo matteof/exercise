@@ -8,6 +8,7 @@
 #include <QGyroscope>
 #include <QtPositioning/QGeoPositionInfoSource>
 #include <QAction>
+#include <QRotationSensor>
 
 
 
@@ -28,15 +29,19 @@ public slots:
 	void		GyroscopeUpdate();
 	void		GyroscopeError( int );
 
-	void		positionUpdated(const QGeoPositionInfo &info);	
+	void		PositionUpdated(const QGeoPositionInfo &info);	
 	void		PositionError( QGeoPositionInfoSource::Error positioningError );
 	void		PositionUpdateTimeout();
+
+	void		RotationUpdate();
+	void		RotationError( int );
 
 private:
 
 	QCompass*					mCompass;
 	QGyroscope*					mGyroscope;
 	QGeoPositionInfoSource*	mPosSrc;
+	QRotationSensor*			mRotation;
 };
 
 #endif // IVAN_QTSENSORTEST_H

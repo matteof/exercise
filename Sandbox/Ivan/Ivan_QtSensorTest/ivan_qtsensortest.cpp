@@ -11,7 +11,7 @@ Ivan_QtSensorTest::Ivan_QtSensorTest(QWidget *parent)
 {
 	setupUi(this);
 
-	setWindowTitle( "102" );
+	setWindowTitle( "103" );
 
 	QAction* mStartAll = new QAction( QString("start"), this );
 	connect( mStartAll, &QAction::triggered, this, &Ivan_QtSensorTest::StartAll );
@@ -79,7 +79,7 @@ void	Ivan_QtSensorTest::StartAll()
 	}
 	else
 	{
-		connect(mPosSrc, SIGNAL(positionUpdated(QGeoPositionInfo)), this, SLOT(positionUpdated(QGeoPositionInfo)));
+		connect(mPosSrc, SIGNAL(positionUpdated(QGeoPositionInfo)), this, SLOT(PositionUpdated(QGeoPositionInfo)));
 		//connect( mPosSrc, &QGeoPositionInfoSource::positionUpdated, this, &Ivan_QtSensorTest::PositionUpdate );
 		connect( mPosSrc, SIGNAL( error( QGeoPositionInfoSource::Error ) ), this, SLOT( PositionError( QGeoPositionInfoSource::Error ) ) );
 		connect( mPosSrc, SIGNAL( updateTimeout() ), this, SLOT( PositionUpdateTimeout() ) );
@@ -96,6 +96,19 @@ void	Ivan_QtSensorTest::StartAll()
 		QGeoCoordinate  thePos =  mPosSrc->lastKnownPosition().coordinate();
 		mPositionInitView->append( QString("QGeoCoordinate : %1 %2 %3").arg(thePos.isValid()).arg(thePos.latitude()).arg(thePos.longitude()) );
 	}
+
+	// compass
+	mRotationInitView->append( "Initialization..." );
+
+	mRotation = new QRotationSensor( this );
+	mRotation->setDataRate( 2 );
+	connect( mRotation, &QCompass::readingChanged, this, &Ivan_QtSensorTest::RotationUpdate );
+	connect( mRotation, &QCompass::sensorError, this, &Ivan_QtSensorTest::RotationError );
+	mRotation->start();
+
+	mRotationInitView->append( "QRotation isBusy: " + QString::number(mRotation->isBusy()) );
+	mRotationInitView->append( "QRotation isConnectedToBackend: " + QString::number(mRotation->isConnectedToBackend()) );
+	mRotationInitView->append( "QRotation isActive: " + QString::number(mRotation->isActive()) );
 }
 
 Ivan_QtSensorTest::~Ivan_QtSensorTest()
@@ -153,7 +166,7 @@ void Ivan_QtSensorTest::GyroscopeError( int error )
 	mGyroscopeStatusView->append( "Gyroscope error num: " + QString::number(error) );	
 }
 
-void Ivan_QtSensorTest::positionUpdated(const QGeoPositionInfo &info)
+void Ivan_QtSensorTest::PositionUpdated(const QGeoPositionInfo &info)
 {
    //qDebug() << "Position updated:" << info;
 	
@@ -185,4 +198,30 @@ void Ivan_QtSensorTest::PositionUpdateTimeout()
 	mPositionStatusView->clear();
 	// \todo
 	mPositionStatusView->append( "PositionUpdateTimeout" );	
+}
+
+void Ivan_QtSensorTest::RotationUpdate()
+{
+	mRotationStatusView->clear();
+
+	QRotationReading* reading = mRotation->reading();
+	if( reading == 0 )
+	{
+		mCompassStatusView->append( "Rotation: UNAVAILABLE" );
+		return;
+	}
+
+	QString text = 
+		"timestamp = " + QString::number( reading->timestamp() ) + "\n"
+		"x = " + QString::number( reading->x() ) + " deg\n"
+		"y = " + QString::number( reading->y() ) + " deg\n"
+		"z = " + QString::number( reading->z() ) + " deg\n";
+
+	mRotationStatusView->append( text );	
+}
+
+void Ivan_QtSensorTest::RotationError( int error ) 
+{
+	mRotationStatusView->clear();
+	mRotationStatusView->append( "Rotation error num: " + QString::number(error) );	
 }
