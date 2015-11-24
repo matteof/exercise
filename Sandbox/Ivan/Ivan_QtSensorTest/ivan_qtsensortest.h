@@ -9,6 +9,7 @@
 #include <QtPositioning/QGeoPositionInfoSource>
 #include <QAction>
 #include <QRotationSensor>
+#include <QMutex>
 
 
 
@@ -19,6 +20,8 @@ class Ivan_QtSensorTest : public QMainWindow, public Ui::Ivan_QtSensorTestClass
 public:
 	Ivan_QtSensorTest( QWidget *parent = 0 );
 	~Ivan_QtSensorTest();
+
+	void		paintEvent(QPaintEvent * event);
 
 public slots:
 	void		StartAll();
@@ -44,6 +47,8 @@ private:
 
 	int							mPosCount;
 	QGeoPositionInfoSource*	mPosSrc;
+	//QMutex                  mPosLogMutex;
+	bool							mInPositionUpdated;
 
 	void		LogPosSrcInfo();
 	QString	PosErrorToString( QGeoPositionInfoSource::Error inVal ) const;

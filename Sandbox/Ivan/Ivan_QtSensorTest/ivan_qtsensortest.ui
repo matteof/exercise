@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1055</width>
-    <height>596</height>
+    <width>1085</width>
+    <height>783</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0" colspan="4">
+    <item row="0" column="0" colspan="3">
      <widget class="QTextEdit" name="mGlobalInitView">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -26,6 +26,76 @@
       <property name="readOnly">
        <bool>true</bool>
       </property>
+     </widget>
+    </item>
+    <item row="0" column="3">
+     <widget class="QFrame" name="mPreferredPositioningMethodFrame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Plain</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="spacing">
+        <number>3</number>
+       </property>
+       <property name="leftMargin">
+        <number>3</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>3</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="label_6">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>setPreferredPositioningMethods</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="mPreferredPositioningMethodCombo">
+         <item>
+          <property name="text">
+           <string>AllPositioningMethods</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>SatellitePositioningMethods</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>NonSatellitePositioningMethods</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>NoPositioningMethods</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
     <item row="1" column="0">
@@ -256,7 +326,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1055</width>
+     <width>1085</width>
      <height>19</height>
     </rect>
    </property>
