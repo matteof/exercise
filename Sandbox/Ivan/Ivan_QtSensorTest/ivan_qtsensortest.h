@@ -49,8 +49,9 @@ private:
 	QGeoPositionInfoSource*	mPosSrc;
 	//QMutex                  mPosLogMutex;
 	bool							mInPositionUpdated;
+	QTextEdit*					mCurrPosLogTextEdit;
 
-	void		LogPosSrcInfo();
+	void		LogPosSrcInfo( QTextEdit* inTextEdit );
 	QString	PosErrorToString( QGeoPositionInfoSource::Error inVal ) const;
 	QString	PosMethodToString( QGeoPositionInfoSource::PositioningMethods inVal ) const;
 };

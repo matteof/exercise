@@ -19,7 +19,7 @@ Ivan_QtSensorTest::Ivan_QtSensorTest(QWidget *parent)
 {
 	setupUi(this);
 
-	setWindowTitle( "113" );
+	setWindowTitle( "114" );
 
 	QAction* mStartAll = new QAction( QString("start"), this );
 	connect( mStartAll, &QAction::triggered, this, &Ivan_QtSensorTest::StartAll );
@@ -89,11 +89,12 @@ void	Ivan_QtSensorTest::StartAll()
 
 
 	// Positioning
-	mPositionView->append( "*** Initialization start" );
+	mCurrPosLogTextEdit = mPositionInitView;
+	mCurrPosLogTextEdit->append( "*** Initialization start" );
 
 	mPosSrc = QGeoPositionInfoSource::createDefaultSource( this );
 
-	LogPosSrcInfo();
+	LogPosSrcInfo( mCurrPosLogTextEdit );
 
 	if( mPosSrc )
 	{
@@ -117,10 +118,12 @@ void	Ivan_QtSensorTest::StartAll()
 		mPosSrc->requestUpdate(1);
 	}
 
-	LogPosSrcInfo();
+	LogPosSrcInfo( mCurrPosLogTextEdit );
 
-	mPositionView->append( "*** Initialization end" );
-	mPositionView->append( "" );
+	mCurrPosLogTextEdit->append( "*** Initialization end" );
+	mCurrPosLogTextEdit->append( "" );
+
+	mCurrPosLogTextEdit = mPositionStatusView;
 
 
 	// compass
@@ -212,11 +215,11 @@ void Ivan_QtSensorTest::PositionUpdated(const QGeoPositionInfo &info)
 		return;
 	mInPositionUpdated = true;
 
-	mPositionView->clear();
-   LogPosSrcInfo();
+	mCurrPosLogTextEdit->clear();
+   LogPosSrcInfo( mCurrPosLogTextEdit );
 
 	QGeoCoordinate  thePos =  info.coordinate();
-	mPositionView->append( QString("QGeoCoordinate: %1 %2 %3 \n Accuracy h %4 v %5\n")
+	mCurrPosLogTextEdit->append( QString("QGeoCoordinate: %1 %2 %3 \n Accuracy h %4 v %5\n")
 		.arg( thePos.isValid() )
 		.arg( thePos.latitude(), 0, 'g', 16 )
 		.arg( thePos.longitude(), 0, 'g', 16 ) 
@@ -224,7 +227,7 @@ void Ivan_QtSensorTest::PositionUpdated(const QGeoPositionInfo &info)
 		.arg( info.attribute(QGeoPositionInfo::VerticalAccuracy) )
 		);
 
-	mPositionView->append( "" );
+	mCurrPosLogTextEdit->append( "" );
 
 	qDebug() << __FUNCTION__ << "e - posCount" << thePC << "- thread" << (unsigned)(QThread::currentThread());
 	mInPositionUpdated = false;
@@ -237,10 +240,10 @@ void Ivan_QtSensorTest::PositionError( QGeoPositionInfoSource::Error positioning
 	int thePC = mPosCount;
 	qDebug() << __FUNCTION__ << "b - posCount" << thePC << "- thread" << (unsigned)(QThread::currentThread());
 
-	LogPosSrcInfo();
+	LogPosSrcInfo( mCurrPosLogTextEdit );
 
-	mPositionView->append( "Position error: " + PosErrorToString(positioningError) );
-	mPositionView->append( "" );
+	mCurrPosLogTextEdit->append( "Position error: " + PosErrorToString(positioningError) );
+	mCurrPosLogTextEdit->append( "" );
 
 	qDebug() << __FUNCTION__ << "e - posCount" << thePC << "- thread" << (unsigned)(QThread::currentThread());
 }
@@ -252,10 +255,10 @@ void Ivan_QtSensorTest::PositionUpdateTimeout()
 	int thePC = mPosCount;
 	qDebug() << __FUNCTION__ << "b - posCount" << thePC << "- thread" << (unsigned)(QThread::currentThread());
 
-	LogPosSrcInfo();
+	LogPosSrcInfo( mCurrPosLogTextEdit );
 
-	mPositionView->append( "PositionUpdateTimeout" );
-	mPositionView->append( "" );
+	mCurrPosLogTextEdit->append( "PositionUpdateTimeout" );
+	mCurrPosLogTextEdit->append( "" );
 
 	qDebug() << __FUNCTION__ << "e - posCount" << thePC << "- thread" << (unsigned)(QThread::currentThread());
 }
@@ -287,35 +290,35 @@ void Ivan_QtSensorTest::RotationError( int error )
 }
 
 
-void Ivan_QtSensorTest::LogPosSrcInfo() 
+void Ivan_QtSensorTest::LogPosSrcInfo( QTextEdit* inTextEdit ) 
 {
-	mPositionView->append( "*** LOG COUNT: " + QString::number( mPosCount ) );
-	mPositionView->append( "therad id: " + QString::number( (unsigned)(QThread::currentThread()) ) );
+	inTextEdit->append( "*** LOG COUNT: " + QString::number( mPosCount ) );
+	inTextEdit->append( "therad id: " + QString::number( (unsigned)(QThread::currentThread()) ) );
 
-	mPositionView->append( "mPosSrc ptr: " + QString::number( (unsigned)(mPosSrc), 16 ) );
+	inTextEdit->append( "mPosSrc ptr: " + QString::number( (unsigned)(mPosSrc), 16 ) );
 
 	if( !mPosSrc )
 		return;
 
-	mPositionView->append( "error: " + PosErrorToString(mPosSrc->error()) );
+	inTextEdit->append( "error: " + PosErrorToString(mPosSrc->error()) );
 
 	QGeoCoordinate  thePos = mPosSrc->lastKnownPosition().coordinate();
-	mPositionView->append( QString( "lastKnownPosition : %1 %2 %3" ).arg( thePos.isValid() ).arg( thePos.latitude() ).arg( thePos.longitude() ) );
-	mPositionView->append( QString( "lastKnownPosition: " ) + thePos.toString() );
+	inTextEdit->append( QString( "lastKnownPosition : %1 %2 %3" ).arg( thePos.isValid() ).arg( thePos.latitude() ).arg( thePos.longitude() ) );
+	inTextEdit->append( QString( "lastKnownPosition: " ) + thePos.toString() );
 
-	mPositionView->append( "minimumUpdateInterval: " + QString::number( mPosSrc->minimumUpdateInterval() ) );
+	inTextEdit->append( "minimumUpdateInterval: " + QString::number( mPosSrc->minimumUpdateInterval() ) );
 
 	QString posMethodsStr = PosMethodToString( mPosSrc->preferredPositioningMethods() );
-	mPositionView->append( "preferredPositioningMethods: " + posMethodsStr + " " + QString::number( mPosSrc->preferredPositioningMethods(), 16 ) );
+	inTextEdit->append( "preferredPositioningMethods: " + posMethodsStr + " " + QString::number( mPosSrc->preferredPositioningMethods(), 16 ) );
 
-	mPositionView->append( "sourceName: " + mPosSrc->sourceName() );
+	inTextEdit->append( "sourceName: " + mPosSrc->sourceName() );
 
 	posMethodsStr = PosMethodToString( mPosSrc->supportedPositioningMethods() );
-	mPositionView->append( "supportedPositioningMethods: " + posMethodsStr + " " + QString::number( mPosSrc->supportedPositioningMethods(), 16 ) );
+	inTextEdit->append( "supportedPositioningMethods: " + posMethodsStr + " " + QString::number( mPosSrc->supportedPositioningMethods(), 16 ) );
 
-	mPositionView->append( "updateInterval: " + QString::number( mPosSrc->updateInterval() ) );
+	inTextEdit->append( "updateInterval: " + QString::number( mPosSrc->updateInterval() ) );
 
-	mPositionView->append( "" );
+	inTextEdit->append( "" );
 }
 
 QString	Ivan_QtSensorTest::PosErrorToString( QGeoPositionInfoSource::Error inVal ) const
