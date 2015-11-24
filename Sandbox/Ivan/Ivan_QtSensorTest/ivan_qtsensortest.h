@@ -40,8 +40,14 @@ private:
 
 	QCompass*					mCompass;
 	QGyroscope*					mGyroscope;
-	QGeoPositionInfoSource*	mPosSrc;
 	QRotationSensor*			mRotation;
+
+	int							mPosCount;
+	QGeoPositionInfoSource*	mPosSrc;
+
+	void		LogPosSrcInfo();
+	QString	PosErrorToString( QGeoPositionInfoSource::Error inVal ) const;
+	QString	PosMethodToString( QGeoPositionInfoSource::PositioningMethods inVal ) const;
 };
 
 #endif // IVAN_QTSENSORTEST_H
